@@ -1,0 +1,1 @@
+wingpanel-indicator-sensors
