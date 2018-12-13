@@ -20,6 +20,7 @@ public class Sensors.Widgets.HWMonitor : GLib.Object {
     private Gtk.Label panel_label;
     private string hwm_cpu;
 
+    public bool watcher = false;
     public bool extended = false;
 
     public HWMonitor (Gtk.Label panel_lab) {
@@ -27,7 +28,7 @@ public class Sensors.Widgets.HWMonitor : GLib.Object {
         sens_hash = new Gee.HashMap<string, string> ();
 
         if (FileUtils.test("/sys/class/hwmon/", FileTest.IS_DIR)) {
-            string hwm_name;
+            string hwm_name, sensors_str;
             hw_monitors = get_hw_monitors ();
 
             foreach (string hwm in hw_monitors) {
@@ -35,24 +36,28 @@ public class Sensors.Widgets.HWMonitor : GLib.Object {
 
                 if (hwm_name. chomp() == "coretemp" || hwm_name. chomp() == "k10temp") {
                     hwm_cpu = hwm;
+                    watcher = true;
                 }
-                sens_hash[hwm] = get_hwm_sensors (@"/sys/class/hwmon/$hwm");
+
+                sensors_str = get_hwm_sensors (@"/sys/class/hwmon/$hwm");
+                if (sensors_str != "") {
+                    sens_hash[hwm] = sensors_str;
+                }
             }
             hwm_start (true);
-        } else {
-            panel_label.label = "off";
         }
     }
 
     public void hwm_start (bool panel_start) {
-        if (panel_start && hwm_cpu == null) {
-            panel_label.label = "off";
+        if (panel_start && !watcher) {
             return;
         }
-        update ();
-        if (timeout_id > 0) {
-            Source.remove (timeout_id);
+
+        if (!panel_start && sens_hash.size == 0) {
+            return;
         }
+
+        update ();
         timeout_id = GLib.Timeout.add (2000, update);
     }
 
@@ -105,19 +110,18 @@ public class Sensors.Widgets.HWMonitor : GLib.Object {
         if (sens_hash.size == 0) {
             Gtk.Label no_hwm_message = new Gtk.Label ("Unfortunately it was not\npossible to determine the\nsensors on your device");
             view.add (no_hwm_message);
-            hwm_stop ();
             return;
         }
 
         sens_position_hash = new Gee.HashMap<string, Gtk.Label> ();
         string sensor_label, monitor_label, path;
-        int top_index = 0;
+        int top_index = 2;
 
         foreach (var entry in sens_hash.entries) {
             path = @"/sys/class/hwmon/" + entry.key;
             monitor_label = get_content (path + "/name");
-            Gtk.Label cpu_label = new Gtk.Label (monitor_label);
-            view.attach (cpu_label, 0, top_index, 2, 1);
+            Gtk.Label hwm_label = new Gtk.Label (monitor_label);
+            view.attach (hwm_label, 0, top_index, 2, 1);
             top_index += 1;
 
             foreach (string sensor in entry.value.split(",")) {
@@ -128,6 +132,7 @@ public class Sensors.Widgets.HWMonitor : GLib.Object {
                 Gtk.Label cpu_it_label = new Gtk.Label (sensor_label);
                 cpu_it_label.halign = Gtk.Align.START;
                 Gtk.Label cpu_it_val = new Gtk.Label ("-");
+                cpu_it_val.halign = Gtk.Align.END;
                 view.attach (cpu_it_label, 0, top_index, 1, 1);
                 view.attach (cpu_it_val, 1, top_index, 1, 1);
                 top_index += 1;
