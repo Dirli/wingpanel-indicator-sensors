@@ -1,5 +1,13 @@
 # Wingpanel Sensors Indicator
 
+![Screenshot](data/screenshot1.png)  
+
+### Popover
+![Screenshot](data/screenshot2.png)  
+
+---
+
+
 ## Building and Installation
 
 You'll need the following dependencies:
