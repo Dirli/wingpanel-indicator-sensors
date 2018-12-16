@@ -1,0 +1,32 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the power-indicator package.
+#
+# Translators:
+# Dirli <dirli1589@yahoo.com>, 2018
+msgid ""
+msgstr ""
+"Project-Id-Version: sensors-indicator\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-12-16 23:31-0700\n"
+"PO-Revision-Date: 2018-12-17 00:13+0300\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+"X-Generator: Poedit 2.2\n"
+"Last-Translator: \n"
+"Language: ru\n"
+
+#: Indicator.vala:25
+msgid "Sensors Indicator"
+msgstr "Индикатор сенсоров"
+
+#: Indicator.vala:26
+msgid "Monitors and displays the temperature on the Wingpanel"
+msgstr "Контролирует и отображает температуру на панель"
+
+#: Indicator.vala:49
+msgid "Show on panel"
+msgstr "Показать на панели"

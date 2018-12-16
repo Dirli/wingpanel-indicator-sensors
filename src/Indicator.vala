@@ -12,71 +12,73 @@
 * General Public License for more details.
 */
 
-public class Sensors.Indicator : Wingpanel.Indicator {
-    private Sensors.Widgets.HWMonitor hw_monitor;
-    private Gtk.Grid? main_widget = null;
-    private Gtk.Label panel_label;
+namespace Sensors {
+    public const string DEFAULT_LABEL = "T °";
 
-    public Indicator () {
-        Object (code_name : "sensors-indicator",
-                display_name : "Sensors Indicator",
-                description: "Monitors and displays the temperature on the Wingpanel");
+    public class Indicator : Wingpanel.Indicator {
+        private Sensors.Widgets.HWMonitor hw_monitor;
+        private Gtk.Grid? main_widget = null;
+        private Gtk.Label panel_label;
 
-        this.visible = true;
-    }
+        public Indicator () {
+            Object (code_name : "sensors-indicator",
+            display_name : _("Sensors Indicator"),
+            description: _("Monitors and displays the temperature on the Wingpanel"));
 
-    public override Gtk.Widget get_display_widget () {
-        if (panel_label == null) {
-            panel_label = new Gtk.Label("off");
-            hw_monitor = new Sensors.Widgets.HWMonitor (panel_label);
+            this.visible = true;
         }
 
-        return panel_label;
-    }
+        public override Gtk.Widget get_display_widget () {
+            if (panel_label == null) {
+                panel_label = new Gtk.Label(DEFAULT_LABEL);
+                hw_monitor = new Sensors.Widgets.HWMonitor (panel_label);
+            }
 
-    public override Gtk.Widget? get_widget () {
-        if (main_widget == null) {
-            main_widget = new Gtk.Grid ();
-            main_widget.margin_top = main_widget.margin_bottom = 5;
-            /* main_widget.margin_start = main_widget.margin_end = 5; */
-            main_widget.valign = Gtk.Align.CENTER;
-            main_widget.halign = Gtk.Align.CENTER;
-            main_widget.orientation = Gtk.Orientation.HORIZONTAL;
-            main_widget.hexpand = true;
-            main_widget.row_spacing = 5;
-
-            Wingpanel.Widgets.Switch watch_switch = new Wingpanel.Widgets.Switch ("Show on panel", hw_monitor.watcher);
-            main_widget.attach (watch_switch, 0, 0, 2, 1);
-            watch_switch.set_sensitive (hw_monitor.watcher);
-            var separator = new Wingpanel.Widgets.Separator ();
-            separator.hexpand = true;
-            main_widget.attach (separator, 0, 1, 2, 1);
-            watch_switch.notify["active"].connect(() => {
-                if (watch_switch.active) {
-                    hw_monitor.watcher = true;
-                } else {
-                    hw_monitor.watcher = false;
-                    panel_label.label = "off";
-                }
-            });
-
-            hw_monitor.init_widget (main_widget);
+            return panel_label;
         }
 
-        return main_widget;
-    }
+        public override Gtk.Widget? get_widget () {
+            if (main_widget == null) {
+                main_widget = new Gtk.Grid ();
+                main_widget.margin_top = main_widget.margin_bottom = 10;
+                main_widget.halign = Gtk.Align.CENTER;
+                main_widget.orientation = Gtk.Orientation.HORIZONTAL;
+                main_widget.hexpand = true;
+                main_widget.row_spacing = 5;
 
-    public override void opened () {
-        hw_monitor.extended = true;
-        if (!hw_monitor.watcher) {
-            hw_monitor.hwm_start (false);
+                Wingpanel.Widgets.Switch watch_switch = new Wingpanel.Widgets.Switch (_("Show on panel"), hw_monitor.watcher);
+                main_widget.attach (watch_switch, 0, 0, 2, 1);
+                watch_switch.set_sensitive (hw_monitor.watcher);
+                var separator = new Wingpanel.Widgets.Separator ();
+                separator.hexpand = true;
+                main_widget.attach (separator, 0, 1, 2, 1);
+                watch_switch.notify["active"].connect(() => {
+                    if (watch_switch.active) {
+                        hw_monitor.watcher = true;
+                    } else {
+                        hw_monitor.watcher = false;
+                        panel_label.label = DEFAULT_LABEL;
+                    }
+                });
+
+                hw_monitor.init_widget (main_widget);
+            }
+
+            return main_widget;
         }
-    }
 
-    public override void closed () {
-        hw_monitor.extended = false;
-        if (!hw_monitor.watcher) {
-            hw_monitor.hwm_stop ();
+        public override void opened () {
+            hw_monitor.extended = true;
+            if (!hw_monitor.watcher) {
+                hw_monitor.hwm_start (false);
+            }
+        }
+
+        public override void closed () {
+            hw_monitor.extended = false;
+            if (!hw_monitor.watcher) {
+                hw_monitor.hwm_stop ();
+            }
         }
     }
 }

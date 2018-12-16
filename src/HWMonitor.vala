@@ -121,6 +121,8 @@ public class Sensors.Widgets.HWMonitor : GLib.Object {
             path = @"/sys/class/hwmon/" + entry.key;
             monitor_label = get_content (path + "/name");
             Gtk.Label hwm_label = new Gtk.Label (monitor_label);
+            hwm_label.margin_start = hwm_label.margin_end = 5;
+            hwm_label.get_style_context ().add_class ("h3");
             view.attach (hwm_label, 0, top_index, 2, 1);
             top_index += 1;
 
@@ -129,14 +131,15 @@ public class Sensors.Widgets.HWMonitor : GLib.Object {
                 if (sensor_label == "") {
                     sensor_label = sensor;
                 }
-                Gtk.Label cpu_it_label = new Gtk.Label (sensor_label);
-                cpu_it_label.halign = Gtk.Align.START;
-                Gtk.Label cpu_it_val = new Gtk.Label ("-");
-                cpu_it_val.halign = Gtk.Align.END;
-                view.attach (cpu_it_label, 0, top_index, 1, 1);
-                view.attach (cpu_it_val, 1, top_index, 1, 1);
+                Gtk.Label sens_iter_label = new Gtk.Label (sensor_label);
+                sens_iter_label.halign = Gtk.Align.START;
+                Gtk.Label sens_iter_val = new Gtk.Label ("-");
+                sens_iter_val.halign = Gtk.Align.END;
+                sens_iter_label.margin_start = sens_iter_val.margin_end = 20;
+                view.attach (sens_iter_label, 0, top_index, 1, 1);
+                view.attach (sens_iter_val, 1, top_index, 1, 1);
                 top_index += 1;
-                sens_position_hash[entry.key + ":" + sensor] = cpu_it_val;
+                sens_position_hash[entry.key + ":" + sensor] = sens_iter_val;
             }
         }
     }

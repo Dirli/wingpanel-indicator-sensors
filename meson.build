@@ -28,4 +28,4 @@ shared_module(
     install_dir : wingpanel_dep.get_pkgconfig_variable('indicatorsdir')
 )
 
-# meson.add_install_script('meson/post_install.py')
+subdir('po')
