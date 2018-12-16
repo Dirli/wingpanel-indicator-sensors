@@ -1,7 +1,7 @@
 project(
     'sensors',
     'vala', 'c',
-    version: '0.3.0'
+    version: '1.0.0'
 )
 
 i18n = import('i18n')
