@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+    <gresource prefix="/io/elementary/desktop/wingpanel/sensors">
+        <file compressed="true" preprocess="xml-stripblanks">temp-symbolic.svg</file>
+    </gresource>
+</gresources>

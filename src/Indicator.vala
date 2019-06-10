@@ -13,28 +13,33 @@
 */
 
 namespace Sensors {
-    public const string DEFAULT_LABEL = "T °";
-
     public class Indicator : Wingpanel.Indicator {
         private Sensors.Widgets.HWMonitor hw_monitor;
         private Gtk.Grid? main_widget = null;
         private Gtk.Label panel_label;
+        private Gtk.Box panel_widget;
 
         public Indicator () {
             Object (code_name : "sensors-indicator",
             display_name : _("Sensors Indicator"),
             description: _("Monitors and displays the temperature on the Wingpanel"));
 
+            Gtk.IconTheme.get_default().add_resource_path("/io/elementary/desktop/wingpanel/sensors");
+
             this.visible = true;
         }
 
         public override Gtk.Widget get_display_widget () {
-            if (panel_label == null) {
-                panel_label = new Gtk.Label(DEFAULT_LABEL);
+            if (panel_widget == null) {
+                var panel_image = new Gtk.Image.from_icon_name ("temp-symbolic", Gtk.IconSize.LARGE_TOOLBAR);
+                panel_widget = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+                panel_label = new Gtk.Label("");
                 hw_monitor = new Sensors.Widgets.HWMonitor (panel_label);
+                panel_widget.add (panel_image);
+                panel_widget.add (panel_label);
             }
 
-            return panel_label;
+            return panel_widget;
         }
 
         public override Gtk.Widget? get_widget () {
@@ -57,7 +62,7 @@ namespace Sensors {
                         hw_monitor.watcher = true;
                     } else {
                         hw_monitor.watcher = false;
-                        panel_label.label = DEFAULT_LABEL;
+                        panel_label.label = "";
                     }
                 });
 

@@ -4,10 +4,18 @@ project(
     version: '1.0.0'
 )
 
+gnome = import('gnome')
 i18n = import('i18n')
 gettext_name = meson.project_name() + '-indicator'
 
 add_global_arguments('-DGETTEXT_PACKAGE="@0@"'.format(gettext_name), language:'c')
+
+icons_gresource = gnome.compile_resources(
+    'as-resources',
+    join_paths('data', meson.project_name() + '.gresource.xml'),
+    source_dir: 'data',
+    c_name: 'as'
+)
 
 wingpanel_dep = dependency('wingpanel-2.0')
 #posix_dep = meson.get_compiler('vala').find_library('posix')
@@ -16,6 +24,7 @@ shared_module(
     meson.project_name(),
     'src/Indicator.vala',
     'src/HWMonitor.vala',
+    icons_gresource,
     dependencies: [
         dependency('glib-2.0'),
         dependency('gobject-2.0'),
