@@ -114,7 +114,7 @@ public class Sensors.Widgets.HWMonitor : GLib.Object {
         }
 
         sens_position_hash = new Gee.HashMap<string, Gtk.Label> ();
-        string sensor_label, monitor_label, path;
+        string sensor_label, monitor_label, path, sensor_tooltip;
         int top_index = 2;
 
         foreach (var entry in sens_hash.entries) {
@@ -133,6 +133,12 @@ public class Sensors.Widgets.HWMonitor : GLib.Object {
                 }
                 Gtk.Label sens_iter_label = new Gtk.Label (sensor_label);
                 sens_iter_label.halign = Gtk.Align.START;
+
+                sensor_tooltip = get_content (path + "/" + sensor + "_max");
+                if (sensor_tooltip != "") {
+                    sens_iter_label.tooltip_text = scres (sensor_tooltip);
+                }
+
                 Gtk.Label sens_iter_val = new Gtk.Label ("-");
                 sens_iter_val.halign = Gtk.Align.END;
                 sens_iter_label.margin_start = sens_iter_val.margin_end = 20;
