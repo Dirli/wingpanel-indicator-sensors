@@ -136,7 +136,7 @@ public class Sensors.Widgets.HWMonitor : GLib.Object {
 
                 sensor_tooltip = get_content (path + "/" + sensor + "_max");
                 if (sensor_tooltip != "") {
-                    sens_iter_label.tooltip_text = scres (sensor_tooltip);
+                    sens_iter_label.tooltip_text = "max " + parse_temp (sensor_tooltip);
                 }
 
                 Gtk.Label sens_iter_val = new Gtk.Label ("-");
