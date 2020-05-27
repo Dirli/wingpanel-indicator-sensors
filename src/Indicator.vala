@@ -31,7 +31,7 @@ namespace Sensors {
 
         public override Gtk.Widget get_display_widget () {
             if (panel_widget == null) {
-                var panel_image = new Gtk.Image.from_icon_name ("temp-symbolic", Gtk.IconSize.LARGE_TOOLBAR);
+                var panel_image = new Gtk.Image.from_icon_name ("temp-symbolic", Gtk.IconSize.SMALL_TOOLBAR);
                 panel_widget = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
                 panel_label = new Gtk.Label("");
                 hw_monitor = new Sensors.Widgets.HWMonitor (panel_label);
