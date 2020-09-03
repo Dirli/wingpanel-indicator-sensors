@@ -7,7 +7,6 @@
 
 ---
 
-
 ## Building and Installation
 
 You'll need the following dependencies:

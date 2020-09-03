@@ -1,3 +1,11 @@
+wingpanel-indicator-sensors (1.1.1-1) testing; urgency=medium
+
+  * remove deprecated display_name and description
+  * fix icon align & size on panel
+  * added deb build rules
+
+ -- dirli <litandrej85@gmail.com>  Thu, 03 Sep 2020 19:59:33 +0300
+
 wingpanel-indicator-sensors (1.1.0-1) testing; urgency=medium
 
   * New upstream release
