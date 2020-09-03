@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018 Dirli <litandrej85@gmail.com>
+* Copyright (c) 2018-2020 Dirli <litandrej85@gmail.com>
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public
@@ -20,9 +20,7 @@ namespace Sensors {
         private Gtk.Box panel_widget;
 
         public Indicator () {
-            Object (code_name : "sensors-indicator",
-            display_name : _("Sensors Indicator"),
-            description: _("Monitors and displays the temperature on the Wingpanel"));
+            Object (code_name: "sensors-indicator");
 
             Gtk.IconTheme.get_default().add_resource_path("/io/elementary/desktop/wingpanel/sensors");
 
@@ -90,6 +88,7 @@ namespace Sensors {
 
 public Wingpanel.Indicator? get_indicator (Module module, Wingpanel.IndicatorManager.ServerType server_type) {
     debug ("Activating Sensors Indicator");
+
     if (server_type != Wingpanel.IndicatorManager.ServerType.SESSION) {
         return null;
     }

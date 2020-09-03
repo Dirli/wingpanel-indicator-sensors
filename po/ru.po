@@ -1,6 +1,6 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the power-indicator package.
+# This file is distributed under the same license as the sensors-indicator package.
 #
 # Translators:
 # Dirli <dirli1589@yahoo.com>, 2018
