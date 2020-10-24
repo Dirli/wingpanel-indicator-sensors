@@ -1,40 +1,39 @@
-project(
+project (
     'sensors',
     'vala', 'c',
     version: '1.1.1'
 )
 
-gnome = import('gnome')
-i18n = import('i18n')
-gettext_name = meson.project_name() + '-indicator'
+gnome = import ('gnome')
+i18n = import ('i18n')
+gettext_name = meson.project_name () + '-indicator'
 
-add_global_arguments('-DGETTEXT_PACKAGE="@0@"'.format(gettext_name), language:'c')
+add_global_arguments ('-DGETTEXT_PACKAGE="@0@"'.format (gettext_name), language:'c')
 
-icons_gresource = gnome.compile_resources(
+icons_gresource = gnome.compile_resources (
     'as-resources',
-    join_paths('data', meson.project_name() + '.gresource.xml'),
+    join_paths ('data', meson.project_name () + '.gresource.xml'),
     source_dir: 'data',
     c_name: 'as'
 )
 
-wingpanel_dep = dependency('wingpanel-2.0')
-#posix_dep = meson.get_compiler('vala').find_library('posix')
+wingpanel_dep = dependency ('wingpanel-2.0')
+#posix_dep = meson.get_compiler ('vala').find_library ('posix')
 
-shared_module(
-    meson.project_name(),
+shared_module (
+    meson.project_name (),
     'src/Indicator.vala',
     'src/HWMonitor.vala',
     icons_gresource,
     dependencies: [
-        dependency('glib-2.0'),
-        dependency('gobject-2.0'),
-        dependency('granite'),
-        dependency('gtk+-3.0'),
-        dependency('gee-0.8'),
+        dependency ('glib-2.0'),
+        dependency ('gobject-2.0'),
+        dependency ('gtk+-3.0'),
+        dependency ('gee-0.8'),
         wingpanel_dep
     ],
     install: true,
-    install_dir : wingpanel_dep.get_pkgconfig_variable('indicatorsdir')
+    install_dir : wingpanel_dep.get_pkgconfig_variable ('indicatorsdir')
 )
 
-subdir('po')
+subdir ('po')
