@@ -27,14 +27,14 @@ public class Sensors.Widgets.HWMonitor : GLib.Object {
         panel_label = panel_lab;
         sens_hash = new Gee.HashMap<string, string> ();
 
-        if (FileUtils.test("/sys/class/hwmon/", FileTest.IS_DIR)) {
+        if (FileUtils.test ("/sys/class/hwmon/", FileTest.IS_DIR)) {
             string hwm_name, sensors_str;
             hw_monitors = get_hw_monitors ();
 
             foreach (string hwm in hw_monitors) {
                 hwm_name = get_content (@"/sys/class/hwmon/$hwm/name");
 
-                if (hwm_name. chomp() == "coretemp" || hwm_name. chomp() == "k10temp") {
+                if (hwm_name.chomp () == "coretemp" || hwm_name.chomp () == "k10temp") {
                     hwm_cpu = hwm;
                     watcher = true;
                 }
@@ -120,7 +120,18 @@ public class Sensors.Widgets.HWMonitor : GLib.Object {
         foreach (var entry in sens_hash.entries) {
             path = @"/sys/class/hwmon/" + entry.key;
             monitor_label = get_content (path + "/name");
+
+            if (monitor_label == "drivetemp") {
+                if (GLib.FileUtils.test (path + "/device/model", GLib.FileTest.IS_REGULAR)) {
+                    var new_label = get_content (path + "/device/model").chomp ();
+                    if (new_label != "") {
+                        monitor_label = new_label;
+                    }
+                }
+            }
+
             Gtk.Label hwm_label = new Gtk.Label (monitor_label);
+            hwm_label.ellipsize = Pango.EllipsizeMode.END;
             hwm_label.margin_start = hwm_label.margin_end = 5;
             hwm_label.get_style_context ().add_class ("h3");
             view.attach (hwm_label, 0, top_index, 2, 1);
