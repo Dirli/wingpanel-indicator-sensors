@@ -10,10 +10,7 @@ NOTE starting with kernel 5.5, if you want to monitor the temperature of drives,
 
 ----
 
-![Screenshot](data/screenshot1.png)  
-
-### Popover
-![Screenshot](data/screenshot2.png)  
+![Screenshot](data/screenshot.png)  
 
 ---
 
