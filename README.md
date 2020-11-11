@@ -6,6 +6,8 @@
     </a>
 </p>
 
+NOTE starting with kernel 5.5, if you want to monitor the temperature of drives, you need to add the drivetemp module to the startup
+
 ----
 
 ![Screenshot](data/screenshot1.png)  
@@ -26,10 +28,8 @@ You'll need the following dependencies:
 * meson
 * valac
 
-Run `meson` to configure the build environment and then `ninja` to build
-    meson build --prefix=/usr
-    cd build
-    ninja
+How to build
 
-To install, use `ninja install`
-    sudo ninja install
+    meson build --prefix=/usr
+    ninja -C build
+    sudo ninja -C build install
