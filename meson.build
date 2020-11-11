@@ -1,7 +1,7 @@
 project (
     'sensors',
     'vala', 'c',
-    version: '1.1.1'
+    version: '1.1.2'
 )
 
 gnome = import ('gnome')
@@ -18,7 +18,6 @@ icons_gresource = gnome.compile_resources (
 )
 
 wingpanel_dep = dependency ('wingpanel-2.0')
-#posix_dep = meson.get_compiler ('vala').find_library ('posix')
 
 shared_module (
     meson.project_name (),
