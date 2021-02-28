@@ -52,7 +52,7 @@ namespace Sensors {
                 Wingpanel.Widgets.Switch watch_switch = new Wingpanel.Widgets.Switch (_("Show on panel"), hw_monitor.watcher);
                 main_widget.attach (watch_switch, 0, 0, 2, 1);
                 watch_switch.set_sensitive (hw_monitor.watcher);
-                var separator = new Wingpanel.Widgets.Separator ();
+                var separator = new Gtk.Separator (Gtk.Orientation.HORIZONTAL);
                 separator.hexpand = true;
                 main_widget.attach (separator, 0, 1, 2, 1);
                 watch_switch.notify["active"].connect(() => {
