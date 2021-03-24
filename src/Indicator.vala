@@ -14,7 +14,7 @@
 
 namespace Sensors {
     public class Indicator : Wingpanel.Indicator {
-        private Sensors.Widgets.HWMonitor hw_monitor;
+        private HWMonitor hw_monitor;
         private Gtk.Grid? main_widget = null;
         private Gtk.Label panel_label;
         private Gtk.Box panel_widget;
@@ -22,18 +22,19 @@ namespace Sensors {
         public Indicator () {
             Object (code_name: "sensors-indicator");
 
-            Gtk.IconTheme.get_default().add_resource_path("/io/elementary/desktop/wingpanel/sensors");
+            Gtk.IconTheme.get_default ().add_resource_path ("/io/elementary/desktop/wingpanel/sensors");
 
             this.visible = true;
         }
 
         public override Gtk.Widget get_display_widget () {
             if (panel_widget == null) {
-                var panel_image = new Gtk.Image.from_icon_name ("temp-symbolic", Gtk.IconSize.SMALL_TOOLBAR);
                 panel_widget = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
-                panel_label = new Gtk.Label("");
-                hw_monitor = new Sensors.Widgets.HWMonitor (panel_label);
-                panel_widget.add (panel_image);
+                panel_label = new Gtk.Label ("");
+
+                hw_monitor = new HWMonitor (panel_label);
+
+                panel_widget.add (new Gtk.Image.from_icon_name ("temp-symbolic", Gtk.IconSize.SMALL_TOOLBAR));
                 panel_widget.add (panel_label);
             }
 
@@ -55,7 +56,7 @@ namespace Sensors {
                 var separator = new Gtk.Separator (Gtk.Orientation.HORIZONTAL);
                 separator.hexpand = true;
                 main_widget.attach (separator, 0, 1, 2, 1);
-                watch_switch.notify["active"].connect(() => {
+                watch_switch.notify["active"].connect (() => {
                     if (watch_switch.active) {
                         hw_monitor.watcher = true;
                     } else {
