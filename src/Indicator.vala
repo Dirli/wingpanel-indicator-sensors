@@ -16,6 +16,7 @@ namespace Sensors {
     public const string HWMON_PATH = "/sys/class/hwmon/";
     public const string AMD_CPU = "k10temp";
     public const string INTEL_CPU = "coretemp";
+    public const string NVIDIA_GPU = "nvidia";
 
     public struct HWMonStruct {
         public string label;

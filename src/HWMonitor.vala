@@ -28,6 +28,7 @@ namespace Sensors {
         }
 
         private void init_hwmons () {
+            bool has_video = false;
             find_hw_monitors ().foreach ((hwm) => {
                 var hwm_name = Utils.get_content (@"$hwm/name");
                 var sensors_str = find_hwm_sensors (HWMON_PATH + hwm);
@@ -40,8 +41,19 @@ namespace Sensors {
                     sens_hash[hwm] = sensors_str;
                 }
 
+
+                if (hwm_name.chomp () == "radeon" || hwm_name.chomp () == "nouveau") {
+                    has_video = true;
+                }
+
                 return true;
             });
+
+            if (!has_video) {
+                if (GLib.FileUtils.test ("/usr/bin/nvidia-settings", GLib.FileTest.IS_EXECUTABLE)) {
+                    sens_hash[NVIDIA_GPU] = "temp";
+                }
+            }
         }
 
         private Gee.HashSet<string> find_hw_monitors () {
@@ -86,8 +98,19 @@ namespace Sensors {
             var hwmons_arr = new Gee.ArrayList<HWMonStruct?> ();
 
             sens_hash.@foreach ((entry) => {
-                HWMonStruct hwmon_struct = {};
+                if (entry.key == NVIDIA_GPU) {
+                    HWMonStruct nvidia_struct = {};
+                    nvidia_struct.name = entry.key;
+                    nvidia_struct.label = entry.key;
+                    nvidia_struct.path = entry.key;
+
+                    hwmons_arr.add (nvidia_struct);
+                    return true;
+                }
+
                 var monitor_name = Utils.get_content (@"$(entry.key)/name");
+
+                HWMonStruct hwmon_struct = {};
                 hwmon_struct.name = monitor_name;
                 hwmon_struct.label = monitor_name;
                 hwmon_struct.path = entry.key;
@@ -118,24 +141,32 @@ namespace Sensors {
                 return sensors_arr;
             }
 
-            foreach (string sensor in sens_hash[path].split (",")) {
-                SensorStruct sens_struct = {};
+            if (path == NVIDIA_GPU) {
+                SensorStruct nvidia_sensor = {};
+                nvidia_sensor.label = "temp";
+                nvidia_sensor.key = NVIDIA_GPU;
 
-                var sensor_label = Utils.get_content (@"$(path)/$(sensor)_label");
-                if (sensor_label == "") {
-                    sensor_label = sensor;
+                sensors_arr.add (nvidia_sensor);
+            } else {
+                foreach (string sensor in sens_hash[path].split (",")) {
+                    SensorStruct sens_struct = {};
+
+                    var sensor_label = Utils.get_content (@"$(path)/$(sensor)_label");
+                    if (sensor_label == "") {
+                        sensor_label = sensor;
+                    }
+
+                    sens_struct.label = sensor_label;
+
+                    var sensor_tooltip = Utils.get_content (@"$(path)/$(sensor)_max");
+                    if (sensor_tooltip != "") {
+                        sens_struct.tooltip = sensor_tooltip;
+                    }
+
+                    sens_struct.key = @"$(path):$(sensor)";
+
+                    sensors_arr.add (sens_struct);
                 }
-
-                sens_struct.label = sensor_label;
-
-                var sensor_tooltip = Utils.get_content (@"$(path)/$(sensor)_max");
-                if (sensor_tooltip != "") {
-                    sens_struct.tooltip = sensor_tooltip;
-                }
-
-                sens_struct.key = @"$(path):$(sensor)";
-
-                sensors_arr.add (sens_struct);
             }
 
             return sensors_arr;
@@ -166,8 +197,19 @@ namespace Sensors {
                 }
 
                 foreach (var entry in sens_hash.entries) {
-                    foreach (string sensor in entry.value.split(",")) {
-                        fetch_sensor (@"$(entry.key):$(sensor)", Utils.get_content (@"$(entry.key)/$(sensor)_input"));
+                    if (entry.key == NVIDIA_GPU) {
+                        try {
+                            string ls_stdout;
+                            GLib.Process.spawn_command_line_sync ("nvidia-settings -q [gpu:0]/gpucoretemp -t", out ls_stdout, null, null);
+
+                            fetch_sensor (NVIDIA_GPU, @"$(int.parse (ls_stdout) * 1000)");
+                        } catch (SpawnError e) {
+                            warning (e.message);
+                        }
+                    } else {
+                        foreach (string sensor in entry.value.split(",")) {
+                            fetch_sensor (@"$(entry.key):$(sensor)", Utils.get_content (@"$(entry.key)/$(sensor)_input"));
+                        }
                     }
                 }
             }
