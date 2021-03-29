@@ -106,6 +106,8 @@ namespace Sensors {
                 return true;
             });
 
+            hwmons_arr.sort (Utils.compare_monitors);
+
             return hwmons_arr;
         }
 

@@ -18,4 +18,20 @@ namespace Sensors.Utils {
 
         return content.chomp ();
     }
+
+    private int compare_monitors (HWMonStruct? mon1, HWMonStruct? mon2) {
+        if (mon1 == null) {return (mon2 == null) ? 0 : -1;}
+        if (mon2 == null) {return 1;}
+        if (mon1.name == AMD_CPU || mon1.name == INTEL_CPU) {return -1;}
+        if (mon2.name == AMD_CPU || mon2.name == INTEL_CPU) {return 1;}
+        if (mon1.name == "nvidia" || mon1.name == "radeon" || mon1.name == "nouveau") {return -1;}
+        if (mon2.name == "nvidia" || mon2.name == "radeon" || mon2.name == "nouveau") {return 1;}
+        if (mon1.name != "drivetemp" && mon1.name != "nvme") {return -1;}
+        if (mon2.name != "drivetemp" && mon2.name != "nvme") {return 1;}
+
+        if (mon1.name == "nvme") {return -1;}
+        if (mon2.name == "nvme") {return 1;}
+
+        return GLib.strcmp (mon1.label, mon2.label);
+    }
 }
