@@ -14,195 +14,162 @@
 
 namespace Sensors {
     public class HWMonitor : GLib.Object {
-        private Gee.HashSet<string> hw_monitors;
+        public signal void fetch_sensor (string key, string val);
+
         private Gee.HashMap<string, string> sens_hash;
-        private uint timeout_id;
-        private Gee.HashMap<string, Gtk.Label> sens_position_hash;
-        private Gtk.Label panel_label;
-        private string hwm_cpu;
+        private string default_monitor = "";
 
-        public bool watcher = false;
-        public bool extended = false;
-
-        public HWMonitor (Gtk.Label panel_lab) {
-            panel_label = panel_lab;
+        public HWMonitor () {
             sens_hash = new Gee.HashMap<string, string> ();
 
-            if (GLib.FileUtils.test ("/sys/class/hwmon/", GLib.FileTest.IS_DIR)) {
-                string hwm_name, sensors_str;
-                hw_monitors = get_hw_monitors ();
+            if (GLib.FileUtils.test (HWMON_PATH, GLib.FileTest.IS_DIR)) {
+                init_hwmons ();
+            }
+        }
 
-                foreach (string hwm in hw_monitors) {
-                    hwm_name = get_content (@"/sys/class/hwmon/$hwm/name");
+        private void init_hwmons () {
+            find_hw_monitors ().foreach ((hwm) => {
+                var hwm_name = Utils.get_content (@"$hwm/name");
+                var sensors_str = find_hwm_sensors (HWMON_PATH + hwm);
 
-                    if (hwm_name.chomp () == "coretemp" || hwm_name.chomp () == "k10temp") {
-                        hwm_cpu = hwm;
-                        watcher = true;
+                if (sensors_str != "") {
+                    if (hwm_name.chomp () == INTEL_CPU || hwm_name.chomp () == AMD_CPU) {
+                        default_monitor = hwm;
                     }
 
-                    sensors_str = get_hwm_sensors (@"/sys/class/hwmon/$hwm");
-                    if (sensors_str != "") {
-                        sens_hash[hwm] = sensors_str;
-                    }
+                    sens_hash[hwm] = sensors_str;
                 }
-                hwm_start (true);
-            }
+
+                return true;
+            });
         }
 
-        public void hwm_start (bool panel_start) {
-            if (panel_start && !watcher) {
-                return;
+        private Gee.HashSet<string> find_hw_monitors () {
+            string? name = null;
+            Gee.HashSet<string> hwm_set = new Gee.HashSet<string> ();
+            try {
+                GLib.Dir dir = GLib.Dir.open (HWMON_PATH, 0);
+                while ((name = dir.read_name ()) != null) {
+                    hwm_set.add (name);
+                }
+
+            } catch (GLib.Error e) {
+                warning (e.message);
             }
 
-            if (!panel_start && sens_hash.size == 0) {
-                return;
-            }
-
-            update ();
-            timeout_id = GLib.Timeout.add (2000, update);
+            return hwm_set;
         }
 
-        public void hwm_stop () {
-            if (timeout_id > 0) {
-                GLib.Source.remove (timeout_id);
-            }
-        }
-
-        private string get_hwm_sensors (string hwm_path) {
+        private string find_hwm_sensors (string hwm_path) {
             string name, sens_string = "";
-            Gee.TreeSet<string> sens_set = new Gee.TreeSet<string> ();
+
             try {
                 GLib.Regex regex = new GLib.Regex ("^temp[0-9]_input");
                 GLib.Dir dir = GLib.Dir.open (hwm_path, 0);
                 while ((name = dir.read_name ()) != null) {
                     if (regex.match (name)) {
-                        sens_set.add (name.split ("_")[0]);
+                        if (sens_string != "") {
+                            sens_string += ",";
+                        }
+
+                        sens_string += name.split ("_")[0];
                     }
                 }
             } catch (GLib.Error e) {
                 warning (e.message);
-            }
-
-            foreach (string str in sens_set) {
-                if (sens_string != "") {
-                    sens_string += ",";
-                }
-                sens_string += str;
             }
 
             return sens_string;
         }
 
-        private Gee.HashSet<string> get_hw_monitors () {
-            string? name = null;
-            Gee.HashSet<string> hwm_set = new Gee.HashSet<string> ();
-            try {
-                GLib.Dir dir = GLib.Dir.open ("/sys/class/hwmon", 0);
-                while ((name = dir.read_name ()) != null) {
-                    hwm_set.add (name);
-                }
-            } catch (GLib.Error e) {
-                warning (e.message);
-            }
-            return hwm_set;
-        }
+        public Gee.ArrayList<HWMonStruct?> get_hwmonitors () {
+            var hwmons_arr = new Gee.ArrayList<HWMonStruct?> ();
 
-        public void init_widget (Gtk.Grid view) {
-            if (sens_hash.size == 0) {
-                Gtk.Label no_hwm_message = new Gtk.Label ("Unfortunately it was not\npossible to determine the\nsensors on your device");
-                view.add (no_hwm_message);
-                return;
-            }
+            sens_hash.@foreach ((entry) => {
+                HWMonStruct hwmon_struct = {};
+                var monitor_name = Utils.get_content (@"$(entry.key)/name");
+                hwmon_struct.name = monitor_name;
+                hwmon_struct.label = monitor_name;
+                hwmon_struct.path = entry.key;
 
-            sens_position_hash = new Gee.HashMap<string, Gtk.Label> ();
-            string sensor_label, monitor_label, path, sensor_tooltip;
-            int top_index = 2;
-
-            foreach (var entry in sens_hash.entries) {
-                path = @"/sys/class/hwmon/$(entry.key)";
-                monitor_label = get_content (path + "/name");
-
-                if (monitor_label == "drivetemp") {
-                    if (GLib.FileUtils.test (path + "/device/model", GLib.FileTest.IS_REGULAR)) {
-                        var new_label = get_content (path + "/device/model").chomp ();
+                if (monitor_name == "drivetemp") {
+                    if (GLib.FileUtils.test (HWMON_PATH + @"$(entry.key)/device/model", GLib.FileTest.IS_REGULAR)) {
+                        var new_label = Utils.get_content (@"$(entry.key)/device/model").chomp ();
                         if (new_label != "") {
-                            monitor_label = new_label;
+                            hwmon_struct.label = new_label;
                         }
                     }
                 }
 
-                Gtk.Label hwm_label = new Gtk.Label (monitor_label);
-                hwm_label.ellipsize = Pango.EllipsizeMode.END;
-                hwm_label.margin_start = hwm_label.margin_end = 5;
-                hwm_label.get_style_context ().add_class ("h3");
-                view.attach (hwm_label, 0, top_index, 2, 1);
-                top_index += 1;
+                hwmons_arr.add (hwmon_struct);
 
-                foreach (string sensor in entry.value.split (",")) {
-                    sensor_label = get_content (path + "/" + sensor + "_label");
-                    if (sensor_label == "") {
-                        sensor_label = sensor;
-                    }
-                    Gtk.Label sens_iter_label = new Gtk.Label (sensor_label);
-                    sens_iter_label.halign = Gtk.Align.START;
+                return true;
+            });
 
-                    sensor_tooltip = get_content (path + "/" + sensor + "_max");
-                    if (sensor_tooltip != "") {
-                        sens_iter_label.tooltip_text = "max " + parse_temp (sensor_tooltip);
-                    }
+            return hwmons_arr;
+        }
 
-                    Gtk.Label sens_iter_val = new Gtk.Label ("-");
-                    sens_iter_val.halign = Gtk.Align.END;
-                    sens_iter_label.margin_start = sens_iter_val.margin_end = 20;
-                    view.attach (sens_iter_label, 0, top_index, 1, 1);
-                    view.attach (sens_iter_val, 1, top_index, 1, 1);
-                    top_index += 1;
-                    sens_position_hash[entry.key + ":" + sensor] = sens_iter_val;
+        public Gee.ArrayList<SensorStruct?> get_hwmon_sensors (string path) {
+            var sensors_arr = new Gee.ArrayList<SensorStruct?> ();
+
+            if (!sens_hash.has_key (path)) {
+                return sensors_arr;
+            }
+
+            foreach (string sensor in sens_hash[path].split (",")) {
+                SensorStruct sens_struct = {};
+
+                var sensor_label = Utils.get_content (@"$(path)/$(sensor)_label");
+                if (sensor_label == "") {
+                    sensor_label = sensor;
                 }
+
+                sens_struct.label = sensor_label;
+
+                var sensor_tooltip = Utils.get_content (@"$(path)/$(sensor)_max");
+                if (sensor_tooltip != "") {
+                    sens_struct.tooltip = sensor_tooltip;
+                }
+
+                sens_struct.key = @"$(path):$(sensor)";
+
+                sensors_arr.add (sens_struct);
             }
+
+            return sensors_arr;
         }
 
-        private string get_content (string path) {
-            string content;
-            try {
-                GLib.FileUtils.get_contents (path, out content);
-            } catch (GLib.Error e) {
-                return "";
-            }
-
-            return content.chomp ();
-        }
-
-        private string parse_temp (string temp_str) {
-            if (temp_str == "") {
-                return "0° C";
-            }
-            int temp_int = int.parse(temp_str) / 1000;
-            return "%d° C".printf(temp_int);
-        }
-
-        private unowned bool update () {
+        public bool update_sensors (bool extended) {
             if (!extended) {
+                if (default_monitor == "") {
+                    return false;
+                }
+
                 int temp_val, temp_max = 0;
                 string temp_cur;
-                string sens_str = sens_hash[hwm_cpu];
+                string sens_str = sens_hash[default_monitor];
 
                 foreach (string sensor in sens_str.split(",")) {
-                    temp_cur = get_content (@"/sys/class/hwmon/$hwm_cpu/$sensor" + "_input");
-                    temp_val = int.parse(temp_cur) / 1000;
-                    if (temp_val > temp_max) {temp_max = temp_val;}
+                    temp_cur = Utils.get_content (@"$(default_monitor)/$(sensor)_input");
+                    temp_val = int.parse (temp_cur) / 1000;
+                    if (temp_val > temp_max) {
+                        temp_max = temp_val;
+                    }
                 }
-                panel_label.label = "%d°".printf(temp_max);
+
+                fetch_sensor ("", @"$(temp_max)");
             } else {
-                string temp_str, path;
+                if (sens_hash.size == 0) {
+                    return false;
+                }
+
                 foreach (var entry in sens_hash.entries) {
-                    path = "/sys/class/hwmon/" + entry.key;
                     foreach (string sensor in entry.value.split(",")) {
-                        temp_str = get_content (path + @"/$sensor" + "_input");
-                        sens_position_hash[entry.key + ":" + sensor].label = parse_temp (temp_str);
+                        fetch_sensor (@"$(entry.key):$(sensor)", Utils.get_content (@"$(entry.key)/$(sensor)_input"));
                     }
                 }
             }
+
             return true;
         }
     }

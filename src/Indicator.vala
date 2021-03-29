@@ -13,14 +13,37 @@
 */
 
 namespace Sensors {
+    public const string HWMON_PATH = "/sys/class/hwmon/";
+    public const string AMD_CPU = "k10temp";
+    public const string INTEL_CPU = "coretemp";
+
+    public struct HWMonStruct {
+        public string label;
+        public string path;
+        public string name;
+    }
+
+    public struct SensorStruct {
+        public string key;
+        public string label;
+        public string tooltip;
+    }
+
     public class Indicator : Wingpanel.Indicator {
         private HWMonitor hw_monitor;
-        private Gtk.Grid? main_widget = null;
+        private Widgets.MainGrid? main_widget = null;
         private Gtk.Label panel_label;
         private Gtk.Box panel_widget;
 
+        private uint timeout_id;
+
+        private bool extended = false;
+        private bool on_panel = true;
+
         public Indicator () {
             Object (code_name: "sensors-indicator");
+
+            hw_monitor = new HWMonitor ();
 
             Gtk.IconTheme.get_default ().add_resource_path ("/io/elementary/desktop/wingpanel/sensors");
 
@@ -30,59 +53,74 @@ namespace Sensors {
         public override Gtk.Widget get_display_widget () {
             if (panel_widget == null) {
                 panel_widget = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
-                panel_label = new Gtk.Label ("");
+                panel_label = new Gtk.Label (null);
 
-                hw_monitor = new HWMonitor (panel_label);
+                hw_monitor.fetch_sensor.connect ((key, val) => {
+                    if (key == "") {
+                        panel_label.label = @"$(val)°";
+                    } else {
+                        if (main_widget != null) {
+                            main_widget.update_label (key, val);
+                        }
+                    }
+                });
 
                 panel_widget.add (new Gtk.Image.from_icon_name ("temp-symbolic", Gtk.IconSize.SMALL_TOOLBAR));
                 panel_widget.add (panel_label);
+
+                if (hw_monitor.update_sensors (extended)) {
+                    timeout_id = GLib.Timeout.add (1500, update);
+                }
             }
 
             return panel_widget;
         }
 
+        private bool update () {
+            if ((!extended && !on_panel) || (!hw_monitor.update_sensors (extended))) {
+                timeout_id = 0;
+
+                return false;
+            }
+
+            return true;
+        }
+
         public override Gtk.Widget? get_widget () {
             if (main_widget == null) {
-                main_widget = new Gtk.Grid ();
-                main_widget.margin_top = main_widget.margin_bottom = 10;
-                main_widget.halign = Gtk.Align.CENTER;
-                main_widget.orientation = Gtk.Orientation.HORIZONTAL;
-                main_widget.hexpand = true;
-                main_widget.row_spacing = 5;
-
-                Wingpanel.Widgets.Switch watch_switch = new Wingpanel.Widgets.Switch (_("Show on panel"), hw_monitor.watcher);
-                main_widget.attach (watch_switch, 0, 0, 2, 1);
-                watch_switch.set_sensitive (hw_monitor.watcher);
-                var separator = new Gtk.Separator (Gtk.Orientation.HORIZONTAL);
-                separator.hexpand = true;
-                main_widget.attach (separator, 0, 1, 2, 1);
-                watch_switch.notify["active"].connect (() => {
-                    if (watch_switch.active) {
-                        hw_monitor.watcher = true;
-                    } else {
-                        hw_monitor.watcher = false;
+                main_widget = new Widgets.MainGrid ();
+                main_widget.show_on_paanel.connect ((s) => {
+                    on_panel = s;
+                    if (!s) {
                         panel_label.label = "";
                     }
                 });
 
-                hw_monitor.init_widget (main_widget);
+                hw_monitor.get_hwmonitors ().foreach ((mon) => {
+                    main_widget.add_hwmon_label (mon.label);
+
+                    hw_monitor.get_hwmon_sensors (mon.path).foreach ((sen) => {
+                        main_widget.add_sensor (sen);
+                        return true;
+                    });
+
+                    return true;
+                });
             }
 
             return main_widget;
         }
 
         public override void opened () {
-            hw_monitor.extended = true;
-            if (!hw_monitor.watcher) {
-                hw_monitor.hwm_start (false);
+            extended = true;
+
+            if (timeout_id == 0 && hw_monitor.update_sensors (extended)) {
+                timeout_id = GLib.Timeout.add (1500, update);
             }
         }
 
         public override void closed () {
-            hw_monitor.extended = false;
-            if (!hw_monitor.watcher) {
-                hw_monitor.hwm_stop ();
-            }
+            extended = false;
         }
     }
 }

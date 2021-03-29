@@ -23,6 +23,8 @@ shared_module (
     meson.project_name (),
     'src/Indicator.vala',
     'src/HWMonitor.vala',
+    'src/Utils.vala',
+    'src/Widgets/MainGrid.vala',
     icons_gresource,
     dependencies: [
         dependency ('glib-2.0'),
