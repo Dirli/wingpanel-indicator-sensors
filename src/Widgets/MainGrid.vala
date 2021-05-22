@@ -2,14 +2,14 @@ namespace Sensors {
     public class Widgets.MainGrid : Gtk.Grid {
         public signal void show_on_paanel (bool s);
 
-        private int top;
+        private int top = 0;
 
         private Gee.HashMap<string, Gtk.Label> sensors_hash;
 
         public MainGrid () {
             Object (margin_top: 10,
                     margin_bottom: 10,
-                    halign: Gtk.Align.CENTER,
+                    halign: Gtk.Align.FILL,
                     orientation: Gtk.Orientation.HORIZONTAL,
                     hexpand: true,
                     row_spacing: 5);
@@ -18,8 +18,17 @@ namespace Sensors {
         construct {
             sensors_hash = new Gee.HashMap<string, Gtk.Label> ();
 
-            Wingpanel.Widgets.Switch watch_switch = new Wingpanel.Widgets.Switch (_("Show on panel"), true);
-            attach (watch_switch, 0, top++, 2, 1);
+            Gtk.Label watch_label = new Gtk.Label (_("Show on panel"));
+            watch_label.halign = Gtk.Align.START;
+            watch_label.margin_start = 20;
+
+            Gtk.Switch watch_switch = new Gtk.Switch ();
+            watch_switch.halign = Gtk.Align.END;
+            watch_switch.active = true;
+            watch_switch.margin_end = 20;
+
+            attach (watch_label, 0, top);
+            attach (watch_switch, 1, top++);
 
             var separator = new Gtk.Separator (Gtk.Orientation.HORIZONTAL);
             separator.hexpand = true;
@@ -33,7 +42,9 @@ namespace Sensors {
             Gtk.Label hwm_label = new Gtk.Label (monitor_label);
             hwm_label.ellipsize = Pango.EllipsizeMode.END;
             hwm_label.margin_start = hwm_label.margin_end = 5;
+            hwm_label.margin_top = 5;
             hwm_label.get_style_context ().add_class ("h3");
+
             attach (hwm_label, 0, top++, 2, 1);
         }
 
