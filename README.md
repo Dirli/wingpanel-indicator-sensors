@@ -6,18 +6,17 @@
     </a>
 </p>
 
-NOTE starting with kernel 5.5, if you want to monitor the temperature of drives, you need to add the drivetemp module to the startup
+NOTE starting with kernel 5.5, if you want to monitor the temperature of drives, you need to add the "drivetemp" module to the startup
 
 ----
 
-![Screenshot](data/screenshot.png)  
+![Screenshot](data/screenshot.png)
 
 ---
 
 ## Building and Installation
 
-You'll need the following dependencies:
-
+### You'll need the following dependencies:
 * libglib2.0-dev
 * libgee-0.8-dev
 * libgtk-3-dev
@@ -25,8 +24,7 @@ You'll need the following dependencies:
 * meson
 * valac
 
-How to build
-
+### How to build
     meson build --prefix=/usr
     ninja -C build
     sudo ninja -C build install

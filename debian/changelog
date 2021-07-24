@@ -1,3 +1,11 @@
+wingpanel-indicator-sensors (3.0.0-1) bullseye; urgency=medium
+
+  * Changed license on the GPL-3.0
+  * Added support for nvidia sensors
+  * Replaced the Wingpanel.Separator with Gtk.Separator
+
+ -- dirli <litandrej85@gmail.com>  Sun, 25 Jul 2021 01:14:01 +0300
+
 wingpanel-indicator-sensors (1.1.2-1) testing; urgency=medium
 
   * added model name, for hard drives
