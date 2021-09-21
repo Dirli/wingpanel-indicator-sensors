@@ -6,6 +6,7 @@
     </a>
 </p>
 
+This indicator was merged with the pantheon-monitor (I think it will be more convenient this way). in the future, it will be switched to read-only mode
 NOTE starting with kernel 5.5, if you want to monitor the temperature of drives, you need to add the "drivetemp" module to the startup
 
 ----
